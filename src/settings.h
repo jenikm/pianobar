@@ -97,6 +97,7 @@ typedef struct {
 	char *fifo;
 	char tlsFingerprint[20];
 	char keys[BAR_KS_COUNT];
+  char *save_directory;
 	BarMsgFormatStr_t msgFormat[MSG_COUNT];
 } BarSettings_t;
 

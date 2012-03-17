@@ -56,6 +56,61 @@ THE SOFTWARE.
 #include "ui_dispatch.h"
 #include "ui_readline.h"
 
+extern char **environ;
+/*
+  Saves song to specified directory IF specified directory was specified in the ~/.config/pianobar/config
+  save_directory = /home/ivan/Music/
+  NOTE: relies on curl
+  jenikm
+*/
+
+void StripInvalidChars(char * from, char ** to){
+  int j = 0, prev_score = 0;
+  for(int i=0; i < strlen(from); ++i){
+    if((from[i] >= 'a' && from[i] <= 'z') || (from[i] >= 'A' && from[i] <= 'Z') || (from[i] >= '0' && from[i] <= '9')){
+      prev_score = 0;
+      *((*to)+j++) = from[i];
+    }
+    else if(!prev_score){
+      prev_score = 1;
+      *((*to)+j++) = '_';
+    }
+  }
+  *((*to)+j++) = '\0';
+}
+/*
+  To activate, add save_directory = /home/ivan/Music 
+  to /home/ivan/.config/pianobar/config
+  It will save songs at the same time as they are playing
+  NOTE: relies on curl
+*/
+static void SaveSong(BarApp_t *app ){
+  if((app -> settings).save_directory && strlen((app -> settings).save_directory)){
+    pid_t child = fork();
+    if(!child && child != -1){
+      char file_name[255];
+      char * song_title = malloc(100);
+      char * song_artist = malloc(100);
+      StripInvalidChars(app->playlist->title, &song_title);
+      StripInvalidChars(app->playlist->artist, &song_artist);
+      sprintf(file_name, "%s/%s_%s.mp3", (app -> settings).save_directory, song_title, song_artist );
+      free(song_title);
+      free(song_artist);
+      int fd = open(file_name, O_CREAT|O_WRONLY|O_TRUNC, NULL);
+      chmod(file_name, 00644);
+      dup2(fd, fileno(stdout) );
+      close(fd);
+      char * argv[4];
+      char * wget_args;
+      argv[0] = "/usr/bin/curl";
+      argv[1] = app->playlist->audioUrl;
+      argv[2] = "-s";
+      argv[3] = NULL;
+      execve(argv[0], argv, environ);
+    }
+  }
+}
+
 /*	copy proxy settings to waitress handle
  */
 static void BarMainLoadProxy (const BarSettings_t *settings,
@@ -214,7 +269,8 @@ static void BarMainStartPlayback (BarApp_t *app, pthread_t *playerThread) {
 		/* prevent race condition, mode must _not_ be FREED if
 		 * thread has been started */
 		app->player.mode = PLAYER_STARTING;
-		/* start player */
+		/* start player */ 
+    SaveSong(app);
 		pthread_create (playerThread, NULL, BarPlayerThread,
 				&app->player);
 	}

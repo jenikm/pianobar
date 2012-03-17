@@ -93,6 +93,7 @@ void BarSettingsDestroy (BarSettings_t *settings) {
 	free (settings->npStationFormat);
 	free (settings->listSongFormat);
 	free (settings->fifo);
+	free (settings->save_directory);
 	for (size_t i = 0; i < MSG_COUNT; i++) {
 		free (settings->msgFormat[i].prefix);
 		free (settings->msgFormat[i].postfix);
@@ -175,7 +176,10 @@ void BarSettingsRead (BarSettings_t *settings) {
 			settings->proxy = strdup (val);
 		} else if (streq ("user", key)) {
 			settings->username = strdup (val);
-		} else if (streq ("password", key)) {
+    //jenikm
+		} else if (streq ("save_directory", key)) {
+			settings->save_directory = strdup (val);
+    }else if (streq ("password", key)) {
 			settings->password = strdup (val);
 		} else if (memcmp ("act_", key, 4) == 0) {
 			size_t i;
