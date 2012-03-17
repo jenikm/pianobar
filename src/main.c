@@ -86,16 +86,19 @@ void StripInvalidChars(char * from, char ** to){
 */
 static void SaveSong(BarApp_t *app ){
   if((app -> settings).save_directory && strlen((app -> settings).save_directory)){
+    char file_name[255];
+    char * song_title = malloc(100);
+    char * song_artist = malloc(100);
+    StripInvalidChars(app->playlist->title, &song_title);
+    StripInvalidChars(app->playlist->artist, &song_artist);
+    sprintf(file_name, "%s/%s_%s.mp3", (app -> settings).save_directory, song_title, song_artist );
+    free(song_title);
+    free(song_artist);
+    //If file already exists, do nothing
+    if(access(file_name, F_OK) != -1)
+      return; 
     pid_t child = fork();
     if(!child && child != -1){
-      char file_name[255];
-      char * song_title = malloc(100);
-      char * song_artist = malloc(100);
-      StripInvalidChars(app->playlist->title, &song_title);
-      StripInvalidChars(app->playlist->artist, &song_artist);
-      sprintf(file_name, "%s/%s_%s.mp3", (app -> settings).save_directory, song_title, song_artist );
-      free(song_title);
-      free(song_artist);
       int fd = open(file_name, O_CREAT|O_WRONLY|O_TRUNC, NULL);
       chmod(file_name, 00644);
       dup2(fd, fileno(stdout) );
