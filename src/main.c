@@ -105,11 +105,12 @@ static void SaveSong(BarApp_t *app ){
       close(fd);
       char * argv[4];
       char * wget_args;
-      argv[0] = "/usr/bin/curl";
+      argv[0] = "curl";
       argv[1] = app->playlist->audioUrl;
       argv[2] = "-s";
       argv[3] = NULL;
-      execve(argv[0], argv, environ);
+      execvp(argv[0], argv );
+      perror("Failed to launch CURL");
     }
   }
 }
