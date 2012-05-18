@@ -35,6 +35,8 @@ THE SOFTWARE.
 #include <limits.h>
 #include <assert.h>
 
+#include <piano.h>
+
 #include "settings.h"
 #include "config.h"
 #include "ui_dispatch.h"
@@ -94,6 +96,7 @@ void BarSettingsDestroy (BarSettings_t *settings) {
 	free (settings->listSongFormat);
 	free (settings->fifo);
 	free (settings->save_directory);
+	free (settings->rpcHost);
 	free (settings->partnerUser);
 	free (settings->partnerPassword);
 	free (settings->device);
@@ -136,6 +139,7 @@ void BarSettingsRead (BarSettings_t *settings) {
 	settings->npSongFormat = strdup ("\"%t\" by \"%a\" on \"%l\"%r%@%s");
 	settings->npStationFormat = strdup ("Station \"%n\" (%i)");
 	settings->listSongFormat = strdup ("%i) %a - %t%r");
+	settings->rpcHost = strdup (PIANO_RPC_HOST);
 	settings->partnerUser = strdup ("android");
 	settings->partnerPassword = strdup ("AC7IBG09A3DTSYM4R41UJWL07VLN8JI7");
 	settings->device = strdup ("android-generic");
@@ -192,6 +196,9 @@ void BarSettingsRead (BarSettings_t *settings) {
 			settings->save_directory = strdup (val);
     }else if (streq ("password", key)) {
 			settings->password = strdup (val);
+		} else if (streq ("rpc_host", key)) {
+			free (settings->rpcHost);
+			settings->rpcHost = strdup (val);
 		} else if (streq ("partner_user", key)) {
 			free (settings->partnerUser);
 			settings->partnerUser = strdup (val);
