@@ -51,7 +51,9 @@ THE SOFTWARE.
 #define BAR_PLAYER_SIGCONT SIGUSR2
 
 struct audioPlayer {
+	char doQuit;
 	unsigned char channels;
+	unsigned char aoError;
 
 	enum {
 		PLAYER_FREED = 0, /* thread is not running */
@@ -64,10 +66,6 @@ struct audioPlayer {
 		PLAYER_RECV_DATA, /* playing track */
 		PLAYER_FINISHED_PLAYBACK
 	} mode;
-	enum {
-		PLAYER_RET_OK = 0,
-		PLAYER_RET_ERR = 1,
-	} ret;
 	PianoAudioFormat_t audioFormat;
 
 	unsigned int scale;
@@ -105,10 +103,11 @@ struct audioPlayer {
 
 	unsigned char *buffer;
 
-	bool paused;
-	pthread_t thread;
+	pthread_mutex_t pauseMutex;
 	WaitressHandle_t waith;
 };
+
+enum {PLAYER_RET_OK = 0, PLAYER_RET_ERR = 1};
 
 void *BarPlayerThread (void *data);
 unsigned int BarPlayerCalcScale (float);
