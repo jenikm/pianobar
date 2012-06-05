@@ -49,7 +49,6 @@ THE SOFTWARE.
 static inline void BarUiDoSkipSong (struct audioPlayer *player) {
 	assert (player != NULL);
 
-
 	player->doQuit = 1;
 	/* unlocking an unlocked mutex is forbidden by some implementations */
 	pthread_mutex_trylock (&player->pauseMutex);
