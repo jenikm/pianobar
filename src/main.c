@@ -92,7 +92,7 @@ static void SaveSong(BarApp_t *app ){
     char * song_artist = malloc(100);
     StripInvalidChars(app->playlist->title, &song_title);
     StripInvalidChars(app->playlist->artist, &song_artist);
-    sprintf(file_name, "%s/%s_%s.mp3", (app -> settings).save_directory, song_title, song_artist );
+    sprintf(file_name, "%s/%s_%s.mp4", (app -> settings).save_directory, song_title, song_artist );
     free(song_title);
     free(song_artist);
     //If file already exists, do nothing
