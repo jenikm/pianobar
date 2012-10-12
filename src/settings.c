@@ -208,9 +208,8 @@ void BarSettingsRead (BarSettings_t *settings) {
 				free (settings->inkey);
 				settings->inkey = strdup (val);
     //jenikm
-		} else if (streq ("save_directory", key)) {
-      free (settings->inkey);
-      settings->save_directory = strdup (val);
+      } else if (streq ("save_directory", key)) {
+        settings->save_directory = strdup (val);
 			} else if (memcmp ("act_", key, 4) == 0) {
 				size_t i;
 				/* keyboard shortcuts */
