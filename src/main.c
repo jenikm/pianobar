@@ -364,6 +364,7 @@ static void BarMainLoop (BarApp_t *app) {
 			if (app->playlist != NULL) {
 				PianoSong_t *histsong = app->playlist;
 				app->playlist = app->playlist->next;
+				histsong->next = NULL;
 				BarUiHistoryPrepend (app, histsong);
 			}
 			if (app->playlist == NULL) {
@@ -463,6 +464,9 @@ int main (int argc, char **argv) {
 	if (app.input.fds[1] != -1) {
 		close (app.input.fds[1]);
 	}
+
+	/* write statefile */
+	BarSettingsWrite (app.curStation, &app.settings);
 
 	PianoDestroy (&app.ph);
 	PianoDestroyPlaylist (app.songHistory);
