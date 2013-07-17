@@ -330,6 +330,7 @@ static void BarMainStartPlayback (BarApp_t *app, pthread_t *playerThread) {
 		app->player.audioFormat = app->playlist->audioFormat;
 		app->player.settings = &app->settings;
 		pthread_mutex_init (&app->player.pauseMutex, NULL);
+		pthread_cond_init (&app->player.pauseCond, NULL);
 
 		/* throw event */
 		BarUiStartEventCmd (&app->settings, "songstart",
@@ -359,10 +360,18 @@ static void BarMainPlayerCleanup (BarApp_t *app, pthread_t *playerThread) {
 	/* FIXME: pthread_join blocks everything if network connection
 	 * is hung up e.g. */
 	pthread_join (*playerThread, &threadRet);
+	pthread_cond_destroy (&app->player.pauseCond);
 	pthread_mutex_destroy (&app->player.pauseMutex);
 
-	/* don't continue playback if thread reports error */
-	if (threadRet != (void *) PLAYER_RET_OK) {
+	if (threadRet == (void *) PLAYER_RET_OK) {
+		app->playerErrors = 0;
+	} else if (threadRet == (void *) PLAYER_RET_SOFTFAIL) {
+		++app->playerErrors;
+		if (app->playerErrors >= app->settings.maxPlayerErrors) {
+			/* don't continue playback if thread reports too many error */
+			app->curStation = NULL;
+		}
+	} else {
 		app->curStation = NULL;
 	}
 
@@ -478,8 +487,14 @@ int main (int argc, char **argv) {
 	BarSettingsInit (&app.settings);
 	BarSettingsRead (&app.settings);
 
-	PianoInit (&app.ph, app.settings.partnerUser, app.settings.partnerPassword,
-			app.settings.device, app.settings.inkey, app.settings.outkey);
+	PianoReturn_t pret;
+	if ((pret = PianoInit (&app.ph, app.settings.partnerUser,
+			app.settings.partnerPassword, app.settings.device,
+			app.settings.inkey, app.settings.outkey)) != PIANO_RET_OK) {
+		BarUiMsg (&app.settings, MSG_ERR, "Initialization failed:"
+				" %s\n", PianoErrorToStr (pret));
+		return 0;
+	}
 
 	BarUiMsg (&app.settings, MSG_NONE,
 			"Welcome to " PACKAGE " (" VERSION ")! ");
